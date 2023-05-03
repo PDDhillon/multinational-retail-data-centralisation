@@ -26,9 +26,30 @@ class DataCleaning:
 
         return raw_user_data
     
+    def clean_card_data(self):
+        data_ext = DataExtractor()
+        card_df = data_ext.retrieve_pdf_data("https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf")
+
+        # drop duplicates
+        card_df = card_df.drop_duplicates()
+
+        # Map weird values to consistent values
+        mapping = {"VISA 16 digit" : "Visa", "VISA 13 digit" : "Visa", "VISA 19 digit" : "Visa", "JCB 16 digit" : "JCB",  "JCB 15 digit" : "JCB"}
+        card_df["card_provider"] = card_df["card_provider"].replace(mapping)
+
+        #remove incorrect data
+        valid_cards = ["Visa", "JCB", "Diners Club / Carte Blanche", "American Express","Maestro","Discover", "Mastercard"]
+        inconsistent_cards = set(card_df["card_provider"].unique()).difference(valid_cards)
+        inconsistent_rows = card_df["card_provider"].isin(inconsistent_cards)
+        card_df = card_df[~inconsistent_rows]
+
+        card_df["date_payment_confirmed"] = pd.to_datetime(card_df["date_payment_confirmed"], errors="coerce")
+
+        return card_df
+    
 con = DatabaseConnector()
 clean = DataCleaning()
-data = clean.clean_user_data() 
+data = clean.clean_card_data() 
 cred_url = URL.create(
                         "postgresql+psycopg2",
                         username="postgres",
@@ -37,4 +58,4 @@ cred_url = URL.create(
                         database="sales_data",
                         port="5432"
                     )
-con.upload_to_db(data, "dim_users", cred_url)
+con.upload_to_db(data, "dim_card_details", cred_url)

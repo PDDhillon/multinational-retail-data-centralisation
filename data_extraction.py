@@ -2,6 +2,7 @@
 from database_utils import DatabaseConnector
 from sqlalchemy import URL
 import pandas as pd
+import tabula
 
 class DataExtractor: 
     def read_rds_table(self, data_con : DatabaseConnector, table_name):
@@ -20,4 +21,9 @@ class DataExtractor:
             return pd.read_sql_table(table_name,engine)
         else:
             return None
+        
+    def retrieve_pdf_data(self, pdf_link):
+        df = pd.concat(tabula.read_pdf(pdf_link, pages="all",multiple_tables=True))
+        return df
+
 
