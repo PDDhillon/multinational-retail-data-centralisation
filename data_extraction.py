@@ -3,6 +3,8 @@ from database_utils import DatabaseConnector
 from sqlalchemy import URL
 import pandas as pd
 import tabula
+import requests
+import json
 
 class DataExtractor: 
     def read_rds_table(self, data_con : DatabaseConnector, table_name):
@@ -25,5 +27,22 @@ class DataExtractor:
     def retrieve_pdf_data(self, pdf_link):
         df = pd.concat(tabula.read_pdf(pdf_link, pages="all",multiple_tables=True))
         return df
+    
+    def list_number_of_stores(self, stores_endpoint, headers):
+        # 451 stores required
+        response = requests.get(url=stores_endpoint, headers=headers)
+        return response
+    
+    def retrieve_stores_data(self, endpoint, headers):
+        data = []
+        for x in range(451):
+            response = requests.get(url=f'{endpoint}/{x}', headers=headers)
+            bytes = response.content
+            data.append(json.loads(bytes.decode("utf-8")))
+
+        df =pd.DataFrame.from_records(data)
+        return df
+        
+
 
 

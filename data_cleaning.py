@@ -47,15 +47,35 @@ class DataCleaning:
 
         return card_df
     
-con = DatabaseConnector()
-clean = DataCleaning()
-data = clean.clean_card_data() 
-cred_url = URL.create(
-                        "postgresql+psycopg2",
-                        username="postgres",
-                        password="postgres",
-                        host="localhost",
-                        database="sales_data",
-                        port="5432"
-                    )
-con.upload_to_db(data, "dim_card_details", cred_url)
+    def clean_store_data(self):
+        ext = DataExtractor()
+        #store_df = ext.retrieve_stores_data("https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details",{"x-api-key":"yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX"})
+        store_df = pd.read_csv("tempdata.csv")
+        print(store_df.info())
+
+        valid_countries = ["GB", "DE", "US"]
+        inconsistent_country_codes = set(store_df["country_code"].unique()).difference(valid_countries)
+        inconsistent_rows = store_df["country_code"].isin(inconsistent_country_codes)
+        store_df = store_df[~inconsistent_rows]
+
+        mapping = {"eeEurope": "Europe", "eeAmerica":"America"}
+        store_df["continent"] = store_df["continent"].replace(mapping) 
+
+        store_df["opening_date"] = pd.to_datetime(store_df["opening_date"], errors="coerce")
+
+        return store_df
+
+    
+# con = DatabaseConnector()
+# clean = DataCleaning()
+# data = clean.clean_store_data() 
+# cred_url = URL.create(
+#                         "postgresql+psycopg2",
+#                         username="postgres",
+#                         password="postgres",
+#                         host="localhost",
+#                         database="sales_data",
+#                         port="5432"
+#                     )
+# con.upload_to_db(data, "dim_store_details", cred_url)
+
