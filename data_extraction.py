@@ -52,9 +52,3 @@ class DataExtractor:
 
 #test = DataExtractor()
 #print(test.extract_from_s3("s3://data-handling-public/products.csv").head())
-
-
-        
-
-
-

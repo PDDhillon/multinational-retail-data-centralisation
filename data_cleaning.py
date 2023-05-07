@@ -84,13 +84,21 @@ class DataCleaning:
 
         df["date_added"] = pd.to_datetime(df["date_added"], errors="coerce")
         return df
+    
+    def clean_orders_data(self):
+        data_con = DatabaseConnector()
+        data_ext = DataExtractor()
+        orders_df = data_ext.read_rds_table(data_con,"orders_table")
+        orders_df = orders_df.drop(["first_name", "last_name", "1"], axis=1)
+        return orders_df
+
         
 
 con = DatabaseConnector()
-test = DataExtractor()
+# test = DataExtractor()
 clean = DataCleaning()
-df = test.extract_from_s3("s3://data-handling-public/products.csv")
-data = clean.clean_products_data(df)
+
+data = clean.clean_orders_data()
 cred_url = URL.create(
                         "postgresql+psycopg2",
                         username="postgres",
@@ -99,6 +107,6 @@ cred_url = URL.create(
                         database="sales_data",
                         port="5432"
                     )
-con.upload_to_db(data, "dim_products", cred_url)
+con.upload_to_db(data, "orders_table", cred_url)
 
-
+clean.clean_orders_data()
