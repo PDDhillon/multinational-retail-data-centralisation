@@ -64,18 +64,41 @@ class DataCleaning:
         store_df["opening_date"] = pd.to_datetime(store_df["opening_date"], errors="coerce")
 
         return store_df
-
     
-# con = DatabaseConnector()
-# clean = DataCleaning()
-# data = clean.clean_store_data() 
-# cred_url = URL.create(
-#                         "postgresql+psycopg2",
-#                         username="postgres",
-#                         password="postgres",
-#                         host="localhost",
-#                         database="sales_data",
-#                         port="5432"
-#                     )
-# con.upload_to_db(data, "dim_store_details", cred_url)
+    def convert_product_weights(self, df):
+        df.loc[~df["weight"].str.endswith("kg"),"weight"] = pd.to_numeric(df["weight"].str.replace("g","").str.replace("ml",""), errors="coerce") / 1000
+        df.loc[df["weight"].str.endswith("kg", na=False),"weight"] = df["weight"].str.replace("kg","")
+        df["weight"] = df["weight"].astype("float64") 
+        df = df.dropna(subset=["weight"])   
+        return df
+    
+    def clean_products_data(self, df):
+        df = df.dropna()
+        df = self.convert_product_weights(df)
+
+        #remove incorrect categories
+        valid_categories = ["homeware","toys-and-games","food-and-drink","pets","sports-and-leisure","health-and-beauty","diy"]
+        inconsistent_categories = set(df["category"].unique()).difference(valid_categories)
+        inconsistent_rows = df["category"].isin(inconsistent_categories)
+        df = df[~inconsistent_rows]
+
+        df["date_added"] = pd.to_datetime(df["date_added"], errors="coerce")
+        return df
+        
+
+con = DatabaseConnector()
+test = DataExtractor()
+clean = DataCleaning()
+df = test.extract_from_s3("s3://data-handling-public/products.csv")
+data = clean.clean_products_data(df)
+cred_url = URL.create(
+                        "postgresql+psycopg2",
+                        username="postgres",
+                        password="postgres",
+                        host="localhost",
+                        database="sales_data",
+                        port="5432"
+                    )
+con.upload_to_db(data, "dim_products", cred_url)
+
 
