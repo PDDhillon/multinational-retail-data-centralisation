@@ -91,22 +91,33 @@ class DataCleaning:
         orders_df = data_ext.read_rds_table(data_con,"orders_table")
         orders_df = orders_df.drop(["first_name", "last_name", "1"], axis=1)
         return orders_df
+    
+    def clean_date_events_data(self, df):
+        #remove non numeric values
+        df = df[pd.to_numeric(df['day'], errors='coerce').notnull()]
+        return df
+
 
         
 
 con = DatabaseConnector()
-# test = DataExtractor()
+test = DataExtractor()
 clean = DataCleaning()
 
-data = clean.clean_orders_data()
-cred_url = URL.create(
-                        "postgresql+psycopg2",
-                        username="postgres",
-                        password="postgres",
-                        host="localhost",
-                        database="sales_data",
-                        port="5432"
-                    )
-con.upload_to_db(data, "orders_table", cred_url)
+import json
+file_name = 'date_details.json'
 
-clean.clean_orders_data()
+with open(file_name, 'r', encoding='utf-8') as f:
+        file = json.load(f)
+        df =pd.DataFrame.from_records(file)
+        data =clean.clean_date_events_data(df)
+
+        cred_url = URL.create(
+                                "postgresql+psycopg2",
+                                username="postgres",
+                                password="postgres",
+                                host="localhost",
+                                database="sales_data",
+                                port="5432"
+                            )
+        con.upload_to_db(data, "dim_date_times", cred_url)
