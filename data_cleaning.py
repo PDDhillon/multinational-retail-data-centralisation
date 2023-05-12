@@ -3,12 +3,17 @@ from data_extraction import DataExtractor
 from database_utils import DatabaseConnector
 import pandas as pd
 from sqlalchemy import URL
+import re
 
 class DataCleaning:
     def clean_user_data(self):
         data_con = DatabaseConnector()
         data_ext = DataExtractor()
         raw_user_data = data_ext.read_rds_table(data_con,"legacy_users")
+
+        # Map weird values to consistent values
+        mapping = {"GGB" : "GB"}
+        raw_user_data["country_code"] = raw_user_data["country_code"].replace(mapping)
 
         #A way to remove the invalid country code rows
         valid_countries = ["GB", "DE", "US"]
@@ -33,6 +38,9 @@ class DataCleaning:
         # drop duplicates
         card_df = card_df.drop_duplicates()
 
+        # strip non numeric aspects of card number
+        card_df["card_number"] = card_df["card_number"].astype("string").str.extract('(\d+)', expand=False)
+
         # Map weird values to consistent values
         mapping = {"VISA 16 digit" : "Visa", "VISA 13 digit" : "Visa", "VISA 19 digit" : "Visa", "JCB 16 digit" : "JCB",  "JCB 15 digit" : "JCB"}
         card_df["card_provider"] = card_df["card_provider"].replace(mapping)
@@ -51,7 +59,6 @@ class DataCleaning:
         ext = DataExtractor()
         #store_df = ext.retrieve_stores_data("https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details",{"x-api-key":"yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX"})
         store_df = pd.read_csv("tempdata.csv")
-        print(store_df.info())
 
         valid_countries = ["GB", "DE", "US"]
         inconsistent_country_codes = set(store_df["country_code"].unique()).difference(valid_countries)
@@ -61,20 +68,32 @@ class DataCleaning:
         mapping = {"eeEurope": "Europe", "eeAmerica":"America"}
         store_df["continent"] = store_df["continent"].replace(mapping) 
 
-        store_df["opening_date"] = pd.to_datetime(store_df["opening_date"], errors="coerce")
-
+        # strip non numeric aspects of staff numbers
+        store_df["staff_numbers"] = store_df["staff_numbers"].astype("string").str.extract('(\d+)', expand=False)
+        store_df = store_df.dropna(subset=["opening_date"])
+        
         return store_df
     
     def convert_product_weights(self, df):
-        df.loc[~df["weight"].str.endswith("kg"),"weight"] = pd.to_numeric(df["weight"].str.replace("g","").str.replace("ml",""), errors="coerce") / 1000
-        df.loc[df["weight"].str.endswith("kg", na=False),"weight"] = df["weight"].str.replace("kg","")
+        #create masks to filter between kg and non kg values
+        kg_mask = (df["weight"].str.endswith("kg"))
+        not_kg_mask = (~kg_mask)
+
+        #create filtered subsets
+        not_kg_valid = df[not_kg_mask]
+        kg_valid = df[kg_mask]
+        
+        #use loc to perform necessary operations 
+        df.loc[not_kg_mask, "weight"] = not_kg_valid["weight"].str.replace("x","*").str.replace(" ","").apply(lambda x: eval(re.match(r"(\d+[\*]\d+)|(\d+)",x)[0])/1000)        
+        df.loc[kg_mask, "weight"] = kg_valid["weight"].str.replace("kg","")
+        
+        #convert to float
         df["weight"] = df["weight"].astype("float64") 
-        df = df.dropna(subset=["weight"])   
         return df
     
-    def clean_products_data(self, df):
+    def clean_products_data(self):
+        df = test.extract_from_s3("s3://data-handling-public/products.csv")
         df = df.dropna()
-        df = self.convert_product_weights(df)
 
         #remove incorrect categories
         valid_categories = ["homeware","toys-and-games","food-and-drink","pets","sports-and-leisure","health-and-beauty","diy"]
@@ -82,12 +101,14 @@ class DataCleaning:
         inconsistent_rows = df["category"].isin(inconsistent_categories)
         df = df[~inconsistent_rows]
 
+        df = self.convert_product_weights(df)
         df["date_added"] = pd.to_datetime(df["date_added"], errors="coerce")
         return df
     
     def clean_orders_data(self):
         data_con = DatabaseConnector()
         data_ext = DataExtractor()
+
         orders_df = data_ext.read_rds_table(data_con,"orders_table")
         orders_df = orders_df.drop(["first_name", "last_name", "1"], axis=1)
         return orders_df
@@ -95,29 +116,38 @@ class DataCleaning:
     def clean_date_events_data(self, df):
         #remove non numeric values
         df = df[pd.to_numeric(df['day'], errors='coerce').notnull()]
-        return df
-
-
-        
+        return df    
 
 con = DatabaseConnector()
 test = DataExtractor()
 clean = DataCleaning()
 
-import json
-file_name = 'date_details.json'
+data = clean.clean_products_data()
 
-with open(file_name, 'r', encoding='utf-8') as f:
-        file = json.load(f)
-        df =pd.DataFrame.from_records(file)
-        data =clean.clean_date_events_data(df)
+cred_url = URL.create(
+                        "postgresql+psycopg2",
+                        username="postgres",
+                        password="postgres",
+                        host="localhost",
+                        database="sales_data",
+                        port="5432"
+                    )
+con.upload_to_db(data, "dim_products", cred_url)
 
-        cred_url = URL.create(
-                                "postgresql+psycopg2",
-                                username="postgres",
-                                password="postgres",
-                                host="localhost",
-                                database="sales_data",
-                                port="5432"
-                            )
-        con.upload_to_db(data, "dim_date_times", cred_url)
+# import json
+# file_name = 'date_details.json'
+
+# with open(file_name, 'r', encoding='utf-8') as f:
+#         file = json.load(f)
+#         df =pd.DataFrame.from_records(file)
+#         data =clean.clean_date_events_data(df)
+
+#         cred_url = URL.create(
+#                                 "postgresql+psycopg2",
+#                                 username="postgres",
+#                                 password="postgres",
+#                                 host="localhost",
+#                                 database="sales_data",
+#                                 port="5432"
+#                             )
+#         con.upload_to_db(data, "dim_date_times", cred_url)
