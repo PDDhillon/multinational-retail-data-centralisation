@@ -69,7 +69,7 @@ class DataCleaning:
         store_df["continent"] = store_df["continent"].replace(mapping) 
 
         # strip non numeric aspects of staff numbers
-        store_df["staff_numbers"] = store_df["staff_numbers"].astype("string").str.extract('(\d+)', expand=False)
+        store_df["staff_numbers"] = store_df["staff_numbers"].astype("string").apply(lambda x: ''.join((re.findall(r"(\d+)",x)))) 
         store_df = store_df.dropna(subset=["opening_date"])
         
         return store_df
@@ -92,6 +92,7 @@ class DataCleaning:
         return df
     
     def clean_products_data(self):
+        test = DataExtractor()
         df = test.extract_from_s3("s3://data-handling-public/products.csv")
         df = df.dropna()
 
@@ -122,17 +123,17 @@ con = DatabaseConnector()
 test = DataExtractor()
 clean = DataCleaning()
 
-data = clean.clean_products_data()
+data = clean.clean_store_data()
 
-cred_url = URL.create(
-                        "postgresql+psycopg2",
-                        username="postgres",
-                        password="postgres",
-                        host="localhost",
-                        database="sales_data",
-                        port="5432"
-                    )
-con.upload_to_db(data, "dim_products", cred_url)
+# cred_url = URL.create(
+#                         "postgresql+psycopg2",
+#                         username="postgres",
+#                         password="postgres",
+#                         host="localhost",
+#                         database="sales_data",
+#                         port="5432"
+#                     )
+# con.upload_to_db(data, "dim_products", cred_url)
 
 # import json
 # file_name = 'date_details.json'

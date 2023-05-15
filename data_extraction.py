@@ -45,7 +45,6 @@ class DataExtractor:
         return df
     
     def extract_from_s3(self, s3_address):
-        client=boto3.client('s3')
         data = pd.read_csv(s3_address)
         return data
     
