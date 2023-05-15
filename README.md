@@ -26,3 +26,22 @@ Finally, primary and foreign keys were added to create the neccessary relations 
 
 # Milestone 4
 Now that the data was extracted, cleaned and living inside of a relational database, I could now begin the task of data analysis. Using SQL, I was able to perform queries in order to get various metrics and trends about this data. Below are screenshots of all the finding for each one of the questions asked about the data:
+
+Task 1: How many stores does the business have and in which countries? 
+![alt text](https://github.com/PDDhillon/multinational-retail-data-centralisation/blob/main/images/Task_1.jpg?raw=true)
+Task 2: Which locations currently have the most stores? 
+![alt text](https://github.com/PDDhillon/multinational-retail-data-centralisation/blob/main/images/Task_2.jpg?raw=true)
+Task 3: Which months produce the average highest cost of sales typically? 
+![alt text](https://github.com/PDDhillon/multinational-retail-data-centralisation/blob/main/images/Task_3.jpg?raw=true)
+Task 4: How many sales are coming from online? 
+![alt text](https://github.com/PDDhillon/multinational-retail-data-centralisation/blob/main/images/Task_4.jpg?raw=true)
+Task 5: What percentage of sales come through each type of store? 
+![alt text](https://github.com/PDDhillon/multinational-retail-data-centralisation/blob/main/images/Task_5.jpg?raw=true)
+Task 6: Which month in each year produced the highest cost of sales? 
+![alt text](https://github.com/PDDhillon/multinational-retail-data-centralisation/blob/main/images/Task_6.jpg?raw=true)
+Task 7: What is our staff headcount?
+![alt text](https://github.com/PDDhillon/multinational-retail-data-centralisation/blob/main/images/Task_7.jpg?raw=true)
+Task 8: Which German store type is selling the most? 
+![alt text](https://github.com/PDDhillon/multinational-retail-data-centralisation/blob/main/images/Task_8.jpg?raw=true)
+Task 9: How quickly is the company making sales? 
+![alt text](https://github.com/PDDhillon/multinational-retail-data-centralisation/blob/main/images/Task_9.jpg?raw=true)
