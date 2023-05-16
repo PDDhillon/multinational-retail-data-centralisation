@@ -38,7 +38,7 @@ class DataCleaning():
 
     @property
     def data_con(self) -> DatabaseConnector:
-        return self._conn
+        return self._data_con
     
     @property
     def data_ext(self) -> DataExtractor:
@@ -139,4 +139,3 @@ class DataCleaning():
     
     if __name__=='__main__':
         print(__doc__)
-
