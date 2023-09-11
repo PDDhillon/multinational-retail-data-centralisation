@@ -9,6 +9,8 @@ The three main project classes were `DataExtractor`, `DatabaseConnector` and `Da
 
 User and order data was extracted from an AWS DB. Using a yaml file containing credentials, I was able to connect to the AWS DB. Once cleaned, this data lived in the `dim_users` and `orders_table` tables in `sales_data`.
 
+![alt text](https://github.com/PDDhillon/multinational-retail-data-centralisation/blob/main/images/postgres.png?raw=true)
+
 Card details data was extracted from a PDF document and cleaned. This data was accessed using a module called tabula-py, which helped us access and then convert the data into a pandas dataframe.
 
 Store data was iteratively accessed from an API endpoint. The endpoint would only return the data for a singular store, by the id of that store. Using another endpoint, I was able to get the total number of stores to work out how long my for loop had to hit the endpoint. The for loop called the endpoint 451 times, each time appending the dictionary result to a list. This list was then processed into a pandas dataframe. 
