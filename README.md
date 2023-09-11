@@ -1,5 +1,5 @@
 # multinational-retail-data-centralisation
-
+Currently,a multinational company that sells various goods across the globe, claims their sales data is spread across many different data sources making it not easily accessible or analysable by current members of the team. In an effort to become more data-driven, the organisation would like to make its sales data accessible from one centralised location. The goal will be to produce a system that stores the current company data in a database and query the database to get up-to-date metrics for the business.
 # Milestone 2:
 The first aspect of any data analysis is data extraction and cleaning. In this milestone, I undertook arguably the most important task of the whole project. As without proper data extraction and cleaning, any future data analysis would be flawed. The data came in many forms and was stored inside of my `sales_data` database. 
 
