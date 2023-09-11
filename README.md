@@ -1,13 +1,13 @@
 # multinational-retail-data-centralisation
 
 # Milestone 2:
-The first aspect of any data analysis is data extraction and cleaning. In this milestone, I undertook arguably the most important task of the whole project. As without proper data extraction and cleaning, any future data analysis would be flawed. The data came in many forms and was stored inside of my "sales_data" database. 
+The first aspect of any data analysis is data extraction and cleaning. In this milestone, I undertook arguably the most important task of the whole project. As without proper data extraction and cleaning, any future data analysis would be flawed. The data came in many forms and was stored inside of my `sales_data` database. 
 
 All data was retrieved and processed inside of a pandas dataframe. Pandas is a brilliant way to perform data cleaning, due to the way data is indexed. This allows for very quick and easy filtering of subsets of data, as well as to perform operations on those dataframes.
 
-The three main project classes were "DataExtractor", "DatabaseConnector" and "DataCleaning". All classes have self explanatory names. The database connector was used for direct connection to both AWS DB's and our DB. The DataExtractor was then the main class responsible for getting the data from the various data sources that we had at our disposal. Finally, the DataCleaning class was used to process and clean all the data that was required.
+The three main project classes were `DataExtractor`, `DatabaseConnector` and `DataCleaning`. All classes have self explanatory names. The database connector was used for direct connection to both AWS DB's and our DB. The DataExtractor was then the main class responsible for getting the data from the various data sources that we had at our disposal. Finally, the DataCleaning class was used to process and clean all the data that was required.
 
-User and order data was extracted from an AWS DB. Using a yaml file containing credentials, I was able to connect to the AWS DB. Once cleaned, this data lived in the "dim_users" and "orders_table" tables in "sales_data".
+User and order data was extracted from an AWS DB. Using a yaml file containing credentials, I was able to connect to the AWS DB. Once cleaned, this data lived in the `dim_users` and `orders_table` tables in `sales_data`.
 
 Card details data was extracted from a PDF document and cleaned. This data was accessed using a module called tabula-py, which helped us access and then convert the data into a pandas dataframe.
 
